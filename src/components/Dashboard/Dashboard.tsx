@@ -10,7 +10,7 @@ import type { Task, TaskStatus } from '../../types';
 
 const Dashboard: React.FC = () => {
     // STATE-TASK
-    // List of all TAsks every component gets it data from here 
+    // List of all TAsks every component gets it data from here
 
     const [tasks, setTasks] = useState<Task[]>([]);
 
