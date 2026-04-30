@@ -5,16 +5,20 @@
 
 import React, { useState, useEffect } from 'react';
 import type { Task, TaskStatus } from '../../types';
-import TaskFilter from '../TaskFilter/TaskFilter';
-import TaskList from '../TaskList/TaskList';
-import TaskForm from '../TaskForm/TaskForm';
+import TaskFilter from '../TaskFilter/TaskFilter.tsx';
+import TaskList from '../TaskList/TaskList.tsx';
+import TaskForm from '../TaskForm/TaskForm.tsx';
 
 
 
 const Dashboard: React.FC = () => {
     // STATE-TASK
     // List of all tasks — every component gets its data from here
-    const [tasks, setTasks] = useState<Task[]>([]);
+    // Lazy initializer reads localStorage once on mount instead of in an effect
+    const [tasks, setTasks] = useState<Task[]>(() => {
+        const saved = localStorage.getItem('dashboard-tasks');
+        return saved !== null ? (JSON.parse(saved) as Task[]) : [];
+    });
 
     // STATE-TASK-TO-EDIT
     // Holds the task being edited, or null when adding a new task
@@ -34,20 +38,8 @@ const Dashboard: React.FC = () => {
     const [showForm, setShowForm] = useState<boolean>(false);
 
     // LOAD TASKS FROM LOCAL STORAGE
-    // Checks if user tasks are saved and loads them into state
-    useEffect(() => {
-        const saved = localStorage.getItem('dashboard-tasks');
-
-        if (saved !== null) {
-            // parse it from a string back into an array
-            const parsed = JSON.parse(saved) as Task[];
-            setTasks(parsed);
-            // console.log('Loaded tasks from localStorage:', parsed.length);
-        } else {
-            // No data saved — first time opening app
-            // console.log('Sorry No saved task found, Start Fresh');
-        }
-    }, []); // run once only
+    // Handled above in the useState lazy initializer — reads localStorage once on mount
+    // No useEffect needed here anymore; calling setTasks inside an effect causes extra renders
 
 
     // SAVE TASKS TO LOCAL STORAGE
@@ -89,6 +81,18 @@ const Dashboard: React.FC = () => {
     const handleEditTask = (task: Task) => {
         setTaskToEdit(task);
         setShowForm(true);
+    };
+
+    // HANDLER: STATUS CHANGE
+    // Called by TaskItem when the user picks a new status from the dropdown
+    const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+        setTasks(tasks.map((task) => task.id === taskId ? { ...task, status: newStatus } : task));
+    };
+
+    // HANDLER: DELETE TASK
+    // Called by TaskItem when the user confirms deletion
+    const handleDeleteTask = (taskId: string) => {
+        setTasks(tasks.filter((task) => task.id !== taskId));
     };
 
     // HANDLER: FILTER CHANGED
@@ -325,7 +329,7 @@ const Dashboard: React.FC = () => {
                         borderRadius: '16px',
                         marginBottom: '32px',
                     }}>
-                        <TaskFilter filters={filters} onFilterChange={handleFilterChange} />
+                        <TaskFilter onFilterChange={handleFilterChange} />
                     </div>
 
                     {/* ─── ADD / EDIT FORM ─────────────────────────────────── */}
@@ -387,9 +391,9 @@ const Dashboard: React.FC = () => {
                                 </button>
                             </div>
                             <TaskForm
-                                onSubmit={handleAddTask}
+                                onAddTask={handleAddTask}
                                 taskToEdit={taskToEdit}
-                                onClose={() => { setShowForm(false); setTaskToEdit(null); }}
+                                onCancel={() => { setShowForm(false); setTaskToEdit(null); }}
                             />
                         </div>
                     )}
@@ -423,7 +427,12 @@ const Dashboard: React.FC = () => {
                                 </span>
                             )}
                         </div>
-                        <TaskList tasks={filteredTasks} onEdit={handleEditTask} />
+                        <TaskList
+                            tasks={filteredTasks}
+                            onStatusChange={handleStatusChange}
+                            onDelete={handleDeleteTask}
+                            onEdit={handleEditTask}
+                        />
                     </section>
 
                 </div>

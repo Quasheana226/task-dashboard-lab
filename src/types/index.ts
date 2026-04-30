@@ -20,20 +20,11 @@ export interface Task {
     status: TaskStatus; // Must be 'pending' | 'in-progress' | 'completed'
     priority: 'low' | 'medium' | 'high'; // How urgent is the task 
     dueDate: string; // WHat date is due 
-    CreatedAt: string; //when the task was first added used for sorting
+    order?: number; // Used for drag and drop
 
 }
 
 
-// TASKLIST PROPS
-
-// Props should be the input  a component receives from there parent
-// TaskList will recieve its initaltask so it knows what task to show 
-
-
-export interface TaskListProps {
-    initialTasks: Task[]; // the starting list of tasks passed in from App.tsx
-}
 
 //TASKITEM PROPS
 //Taskitem should recieve one task and two call back functions to tell the parent something happen
@@ -59,9 +50,9 @@ export interface TaskFilterProps {
 
 
 // TASK FORM
-// TaskForm is the add and edit 
-export interface TasksFormProp {
+// TaskForm is the add and edit
+export interface TaskFormProps {
     onAddTask: (task: Task) => void; // called when user submits the form
-    taskToEdit: Task | null
-    onCancel: () => void; // if nor 
+    taskToEdit: Task | null;         // If not null we are editing an existing task
+    onCancel: () => void;            // User clicks cancel to close the form
 }
